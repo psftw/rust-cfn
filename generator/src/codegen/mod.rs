@@ -224,8 +224,10 @@ fn generate_field_type(namespace_opt: Option<&str>, spec: &PropertySpecification
 fn mutate_field_name(name: &str) -> String {
     let mut field_name = name.to_snake_case();
 
-    if field_name == "type" {
-        field_name = "type_".into();
+    for keyword in vec!["match", "type"] {
+        if field_name == keyword {
+            field_name = (field_name + "_").into();
+        }
     }
 
     field_name

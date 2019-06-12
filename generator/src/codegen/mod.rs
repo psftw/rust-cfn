@@ -25,7 +25,7 @@ pub fn generate<P: AsRef<Path>>(spec: Specification, base_path: P) -> io::Result
         (split[0].to_owned(), split[1].to_owned(), res_spec)
     }).group_by(|&(ref service_name, _, _)| service_name.to_owned());
 
-    let property_groups = spec.property_types.into_iter().flatten().filter_map(|(prop_name, prop_spec)| {
+    let property_groups = Itertools::flatten(spec.property_types.into_iter()).filter_map(|(prop_name, prop_spec)| {
         if prop_name.starts_with("AWS::") {
             let split = prop_name[5..].split("::").collect::<Vec<_>>();
             assert!(split.len() == 2);

@@ -32,7 +32,7 @@ pub struct Specification {
 pub struct PropertyType {
     #[serde(rename="Documentation")]
     pub documentation: String,
-    #[serde(rename="Properties")]
+    #[serde(default, rename="Properties")]
     pub properties: BTreeMap<String, PropertySpecification>
 }
 
@@ -47,7 +47,7 @@ pub struct ResourceType {
     #[serde(rename="Documentation")]
     pub documentation: String,
     /// A list of property specifications for the resource. For details, see `PropertySpecification`.
-    #[serde(rename="Properties")]
+    #[serde(default, rename="Properties")]
     pub properties: BTreeMap<String, PropertySpecification>
 }
 
@@ -139,7 +139,8 @@ pub enum PrimitiveType {
     Double,
     Boolean,
     Timestamp,
-    Json
+    Json,
+    Map
 }
 
 #[derive(Clone, Copy, Deserialize)]

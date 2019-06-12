@@ -19,22 +19,20 @@ use self::serde::{
 
 pub fn generate<P: AsRef<Path>>(spec: Specification, base_path: P) -> io::Result<()> {
     let resource_groups = spec.resource_types.into_iter().map(|(res_name, res_spec)| {
-        assert!(res_name.starts_with("AWS::"));
-        let split = res_name[5..].split("::").collect::<Vec<_>>();
-        assert!(split.len() == 2);
-        (split[0].to_owned(), split[1].to_owned(), res_spec)
+        let split = res_name.split("::").collect::<Vec<_>>();
+        assert!(split.len() == 3);
+        (split[1].to_owned(), split[2].to_owned(), res_spec)
     }).group_by(|&(ref service_name, _, _)| service_name.to_owned());
 
     let property_groups = Itertools::flatten(spec.property_types.into_iter()).filter_map(|(prop_name, prop_spec)| {
-        if prop_name.starts_with("AWS::") {
-            let split = prop_name[5..].split("::").collect::<Vec<_>>();
-            assert!(split.len() == 2);
-            let split2 = split[1].split(".").collect::<Vec<_>>();
-            assert!(split2.len() == 2);
-            Some((split[0].to_owned(), split2[0].to_owned(), split2[1].to_owned(), prop_spec))
-        } else {
-            None
+        let split = prop_name.split("::").collect::<Vec<_>>();
+        if split == vec!["Tag"] {
+            return None
         }
+        assert!(split.len() == 3);
+        let split2 = split[2].split(".").collect::<Vec<_>>();
+        assert!(split2.len() == 2);
+        Some((split[1].to_owned(), split2[0].to_owned(), split2[1].to_owned(), prop_spec))
     }).group_by(|&(ref service_name, _, _, _)| service_name.to_owned());
 
     let groups = merge_join_by(resource_groups.into_iter(), property_groups.into_iter(),
@@ -251,6 +249,7 @@ fn generate_primitive_type(primitive_type: &PrimitiveType) -> &str {
         &PrimitiveType::Double => "f64",
         &PrimitiveType::Boolean => "bool",
         &PrimitiveType::Timestamp => "String",
-        &PrimitiveType::Json => "::json::Value"
+        &PrimitiveType::Json => "::json::Value",
+        &PrimitiveType::Map => "::json::Value",
     }
 }
